@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "mEt8/FSw5YrBHyGnRxqzUb+hrblfrAi50ofe64w05+Q=",
+  "Source": "consumer",
+  "BasePath": "_content/consumer",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

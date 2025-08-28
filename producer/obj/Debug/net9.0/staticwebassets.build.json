@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "UPQ5u55r8iWaqVdFKqoYiHEsHZrs++tmrH9l5BvA5JM=",
+  "Source": "producer",
+  "BasePath": "_content/producer",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
