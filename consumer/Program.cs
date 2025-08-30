@@ -1,41 +1,50 @@
+using MongoDB.Driver;
+using Microsoft.Extensions.Options;
+using consumer.Configurations;
+using consumer.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Bind Mongo settings
+builder.Services.Configure<DataBaseSettings>(builder.Configuration.GetSection("MongoDBSettings"));
+
+// Register Mongo client + database
+builder.Services.AddSingleton<IMongoClient>(c =>
+{
+    var settings = c.GetRequiredService<IOptions<DataBaseSettings>>().Value;
+
+    // More graceful exception handling
+    if (string.IsNullOrEmpty(settings.ConnectionString))
+    {
+        throw new ArgumentException("MongoDB ConnectionString is not configured properly.");
+    }
+    return new MongoClient(settings.ConnectionString);
+});
+
+builder.Services.AddSingleton<IMongoDatabase>(db =>
+{
+    var dbConfig = db.GetRequiredService<IOptions<DataBaseSettings>>().Value;
+
+    if (string.IsNullOrWhiteSpace(dbConfig.DatabaseName))
+        throw new ArgumentException("MongoDB DatabaseName is not configured properly.");
+
+    var client = db.GetRequiredService<IMongoClient>();
+    return client.GetDatabase(dbConfig.DatabaseName);
+});
+
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IConsumerService, ConsumerService>();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapControllers();
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+app.MapGet("/ping", () =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    return "pong";
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

@@ -37,3 +37,4 @@ C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\consumer\obj\D
 C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\consumer\obj\Debug\net9.0\consumer.pdb
 C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\consumer\obj\Debug\net9.0\consumer.genruntimeconfig.cache
 C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\consumer\obj\Debug\net9.0\ref\consumer.dll
+C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\consumer\obj\Debug\net9.0\consumer.sourcelink.json
