@@ -17,7 +17,7 @@ namespace producer.Services.ExchangeProviders
     {
         public string ProvideURL(string key, string from, string to)
         {
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(key) || string.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to))
             {
                 return string.Empty;
             }
@@ -51,9 +51,8 @@ namespace producer.Services.ExchangeProviders
         {
             try
             {
-                var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(json) ?? new Dictionary<string, object>();
-                var element = (JsonElement)dict["conversion_rate"];
-                decimal rate = Convert.ToDecimal(element.GetRawText());
+                using var doc = JsonDocument.Parse(json);
+                var rate = doc.RootElement.GetProperty("conversion_rate").GetDecimal();
                 return Task.FromResult(new ExchangeRate(from, to, rate));
             }
             catch (Exception ex)

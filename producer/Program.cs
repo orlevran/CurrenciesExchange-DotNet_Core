@@ -55,7 +55,7 @@ builder.Services.AddSingleton<IExchangeFactory>(f =>
     switch (providerName.ToLowerInvariant())
     {
         case "currencylayer": return new CurrencyLayerExchangeFactory(key);
-        case "exchangerate": return new ExchangeRateAPIFactory(key);
+        case "exchangerate-api": return new ExchangeRateAPIFactory(key);
         case "fxratesapi": return new FXRateAPIFactory(key);
         default : throw new NotSupportedException($"Exchange: Unknown provider '{providerName}'.");
     }

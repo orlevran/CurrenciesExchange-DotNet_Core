@@ -24,7 +24,7 @@ namespace producer.Services.ExchangeProviders
                 return string.Empty;
             }
 
-            return $"https://api.currencylayer.com/live?access_key={Uri.EscapeDataString(key)}&currencies={to}";
+            return $"https://api.currencylayer.com/live?access_key={Uri.EscapeDataString(key)}&currencies={to}&source={from}&format=1";
         }
     }
 

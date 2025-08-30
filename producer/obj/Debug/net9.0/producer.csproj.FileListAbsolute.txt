@@ -37,3 +37,4 @@ C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\producer\bin\D
 C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\producer\bin\Debug\net9.0\SharpCompress.dll
 C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\producer\bin\Debug\net9.0\Snappier.dll
 C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\producer\bin\Debug\net9.0\ZstdSharp.dll
+C:\Users\Or Levran\DotNet_Project\CurrenciesRates\CurrenciesRates\producer\obj\Debug\net9.0\producer.sourcelink.json

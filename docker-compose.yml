@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: ce-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  producer:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: ce-producer
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      # Standard ASP.NET Core
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+
+      # Your app settings (ASP.NET Core will bind __ to : for IOptions)
+      MongoDBSettings__ConnectionString: ${MONGO_CONN}
+      MongoDBSettings__DatabaseName: ${MONGO_DB}
+
+      # Provider selection & credentials (adapt names to your config classes)
+      ActiveExchangeOptions__Provider: ${ACTIVE_PROVIDER}
+      ExchangeProviders__FXRatesAPI__AccessToken: ${FXRATESAPI_TOKEN}
+      ExchangeProviders__CurrencyLayer__ApiKey: ${CURRENCYLAYER_API_KEY}
+      ExchangeProviders__ExchangeRateAPI__ApiKey: ${EXCHANGERATE_API_KEY}
+    ports:
+      - "${PRODUCER_PORT}:${INTERNAL_PORT}"
+    restart: unless-stopped
+
+  consumer:
+    build:
+      context: ./consumer
+      dockerfile: Dockerfile
+    container_name: ce-consumer
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      MongoDBSettings__ConnectionString: ${MONGO_CONN}
+      MongoDBSettings__DatabaseName: ${MONGO_DB}
+    ports:
+      - "${CONSUMER_PORT}:${INTERNAL_PORT}"
+    restart: unless-stopped
+
+  # Optional: simple admin UI for Mongo (uncomment if you want it)
+  # mongo-express:
+  #   image: mongo-express:1
+  #   container_name: ce-mongo-express
+  #   restart: unless-stopped
+  #   depends_on:
+  #     mongo:
+  #       condition: service_healthy
+  #   environment:
+  #     ME_CONFIG_MONGODB_SERVER: mongo
+  #   ports:
+  #     - "8082:8081"
+
+volumes:
+  mongo_data:
