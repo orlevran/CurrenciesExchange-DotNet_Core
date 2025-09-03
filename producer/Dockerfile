@@ -1,8 +1,9 @@
 # Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY . .
+COPY producer.csproj ./
 RUN dotnet restore ./producer.csproj
+COPY . .
 RUN dotnet publish ./producer.csproj -c Release -o /app /p:UseAppHost=false
 
 # Runtime stage

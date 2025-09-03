@@ -5,9 +5,15 @@ using Microsoft.Extensions.Options;
 using producer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
 
 // Bind Mongo settings
 builder.Services.Configure<DataBaseSettings>(builder.Configuration.GetSection("MongoDBSettings"));
+builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
+builder.Services.AddSingleton<IKafkaStreamManager, KafkaStreamManager>();
+builder.Services.AddSingleton(new InstanceStamp(Guid.NewGuid().ToString("N"), Environment.ProcessId));
+
+var runMode = config["RunMode"] ?? "Db";
 
 // Register Mongo client + database
 builder.Services.AddSingleton<IMongoClient>(c =>
@@ -87,11 +93,35 @@ builder.Services.AddSingleton<IExchangeClient>(c =>
 });
 
 builder.Services.AddSingleton<IExchangeRateService, ExchangeRateService>();
+builder.Services.AddSingleton<IKafkaStreamManager, KafkaStreamManager>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+
+app.Use(async (ctx, next) =>
+{
+    var mode = runMode.ToLowerInvariant();
+
+    // block /api/* if Kafka mode
+    if (mode == "kafka" && ctx.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await ctx.Response.WriteAsync("DBFetchController disabled (RunMode=Kafka).");
+        return;
+    }
+
+    // block /kafka/* if Db mode
+    if (mode == "db" && ctx.Request.Path.StartsWithSegments("/kafka", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+        await ctx.Response.WriteAsync("KafkaController disabled (RunMode=Db).");
+        return;
+    }
+
+    await next();
+});
 
 app.MapControllers();
 
@@ -101,3 +131,5 @@ app.MapGet("/ping", () =>
 });
 
 app.Run();
+
+public record InstanceStamp(string Id, int Pid);
