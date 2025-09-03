@@ -1,4 +1,5 @@
 using MongoDB.Bson.Serialization.Attributes;
+using System.Text.Json.Serialization;
 
 namespace consumer.Models
 {
@@ -6,19 +7,15 @@ namespace consumer.Models
     {
         //[BsonElement("from")]
         [BsonElement("from")]
+        [JsonPropertyName("from")]
         public string? from { get; set; }
 
         [BsonElement("to")]
+        [JsonPropertyName("to")]
         public string? to { get; set; }
 
         [BsonElement("rate")]
+        [JsonPropertyName("rate")]
         public decimal? rate { get; set; }
-
-        public ExchangeRate(string _from, string _to, decimal _rate)
-        {
-            from = _from;
-            to = _to;
-            rate = _rate;
-        }
     }
 }

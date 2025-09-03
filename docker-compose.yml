@@ -1,7 +1,12 @@
-version: "3.9"
+# version: "3.9"
 
 services:
+
+  # Define a named volume for MongoDB data persistence
+  # This ensures that your data is not lost when the container is removed or recreated
   mongo:
+    # Use the official MongoDB image from Docker Hub
+    # You can specify a version tag if needed (e.g., mongo:5, mongo:6)
     image: mongo:7
     container_name: ce-mongo
     restart: unless-stopped
@@ -10,66 +15,89 @@ services:
     volumes:
       - mongo_data:/data/db
     healthcheck:
+      # Check if MongoDB is healthy by running a ping command
+      # The service is considered healthy if the command returns successfully within the timeout period
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # Currencies Rates Producer Service
+  # This service fetches currency exchange rates and produces messages to Kafka
+  # Make sure to set the required environment variables in a .env file or directly in the docker-compose.yml
+  # Required environment variables:
+  # - KAFKA_BOOTSTRAP: Comma-separated list of Kafka broker addresses (e.g., broker1:9092,broker2:9092)
+  # - KAFKA_TOPIC: The Kafka topic to which the producer will send messages
+  # - MONGO_CONN: MongoDB connection string (e.g., mongodb://mongo:27017)
+  # - MONGO_DB: The name of the MongoDB database to use
+  # - ACTIVE_PROVIDER: The active exchange rate provider (e.g., FXRatesAPI, CurrencyLayer, ExchangeRateAPI)
+  # - FXRATESAPI_TOKEN: Access token for FXRatesAPI (if using this provider)
+  # - CURRENCYLAYER_API_KEY: API key for CurrencyLayer (if using this provider)
+  # - EXCHANGERATE_API_KEY: API key for ExchangeRateAPI (if using this provider)
+  # - PRODUCER_PORT: The port on the host to map to the producer service
+  # - CONSUMER_PORT: The port on the host to map to the consumer service
+  # - INTERNAL_PORT: The internal port the services listen on
   producer:
     build:
       context: ./producer
       dockerfile: Dockerfile
     container_name: ce-producer
-    depends_on:
-      mongo:
-        condition: service_healthy
     environment:
-      # Standard ASP.NET Core
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-
-      # Your app settings (ASP.NET Core will bind __ to : for IOptions)
+      RunMode: Kafka
+      Kafka__BootstrapServers: ${KAFKA_BOOTSTRAP}
+      Kafka__Topic: ${KAFKA_TOPIC}
       MongoDBSettings__ConnectionString: ${MONGO_CONN}
       MongoDBSettings__DatabaseName: ${MONGO_DB}
-
-      # Provider selection & credentials (adapt names to your config classes)
       ActiveExchangeOptions__Provider: ${ACTIVE_PROVIDER}
       ExchangeProviders__FXRatesAPI__AccessToken: ${FXRATESAPI_TOKEN}
       ExchangeProviders__CurrencyLayer__ApiKey: ${CURRENCYLAYER_API_KEY}
       ExchangeProviders__ExchangeRateAPI__ApiKey: ${EXCHANGERATE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
     ports:
       - "${PRODUCER_PORT}:${INTERNAL_PORT}"
     restart: unless-stopped
 
+  # Currencies Rates Consumer Service
+  # This service consumes messages from Kafka, and reads data from MongoDB
+  # Make sure to set the required environment variables in a .env file or directly in the docker-compose.yml
+  # Required environment variables:
+  # - KAFKA_BOOTSTRAP: Comma-separated list of Kafka broker addresses (e.g., broker1:9092,broker2:9092)
+  # - KAFKA_TOPIC: The Kafka topic from which the consumer will read messages
+  # - MONGO_CONN: MongoDB connection string (e.g., mongodb://mongo:27017)
+  # - MONGO_DB: The name of the MongoDB database to use
+  # - CONSUMER_PORT: The port on the host to map to the consumer service
+  # - INTERNAL_PORT: The internal port the services listen on
   consumer:
     build:
       context: ./consumer
       dockerfile: Dockerfile
     container_name: ce-consumer
-    depends_on:
-      mongo:
-        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
+      RunMode: Kafka
+      Kafka__BootstrapServers: ${KAFKA_BOOTSTRAP}
+      Kafka__Topic: ${KAFKA_TOPIC}
+      Kafka__GroupId: ${KAFKA_GROUP_ID:-ce-consumer-1}
       MongoDBSettings__ConnectionString: ${MONGO_CONN}
       MongoDBSettings__DatabaseName: ${MONGO_DB}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
     ports:
-      - "${CONSUMER_PORT}:${INTERNAL_PORT}"
+    - "${CONSUMER_PORT}:${INTERNAL_PORT}"
     restart: unless-stopped
 
-  # Optional: simple admin UI for Mongo (uncomment if you want it)
-  # mongo-express:
-  #   image: mongo-express:1
-  #   container_name: ce-mongo-express
-  #   restart: unless-stopped
-  #   depends_on:
-  #     mongo:
-  #       condition: service_healthy
-  #   environment:
-  #     ME_CONFIG_MONGODB_SERVER: mongo
-  #   ports:
-  #     - "8082:8081"
-
+# Define named volumes for data persistence
 volumes:
   mongo_data:
