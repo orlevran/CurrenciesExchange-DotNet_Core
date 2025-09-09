@@ -5,6 +5,10 @@ using System.Text.Json;
 
 namespace producer.Services.ExchangeProviders
 {
+    /// <summary>
+    /// Factory and builder classes for interacting with the FXRatesAPI service.
+    /// Provides URL construction, HTTP request handling, and response parsing for currency exchange rates.
+    /// </summary>
     public sealed class FXRateAPIFactory : IExchangeFactory
     {
         private readonly string _key;

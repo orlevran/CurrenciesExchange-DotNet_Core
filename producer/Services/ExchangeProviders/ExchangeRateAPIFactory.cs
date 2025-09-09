@@ -3,6 +3,9 @@ using System.Text.Json;
 
 namespace producer.Services.ExchangeProviders
 {
+    /// <summary>
+    /// Factory for creating ExchangeRate-API specific URL, request, and response builders.
+    /// </summary>
     public sealed class ExchangeRateAPIFactory : IExchangeFactory
     {
         private readonly string _key;

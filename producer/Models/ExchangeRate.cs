@@ -2,9 +2,11 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace producer.Models
 {
+    /// <summary>
+    /// Represents a currency exchange rate between two currencies.
+    /// </summary>
     public class ExchangeRate
     {
-        //[BsonElement("from")]
         [BsonElement("from")]
         public string? from { get; set; }
 
