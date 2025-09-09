@@ -16,6 +16,13 @@ namespace consumer.Controllers
             service = _service;
         }
 
+        /// <summary>
+        /// Returns the last currency rates package: ExchangePackage with ExchangeRates list.
+        /// GET: /api/last_package
+        /// Requires no body
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         [HttpGet("last_package")]
         public async Task<IActionResult> ReadLastPackage(CancellationToken token = default)
         {
@@ -36,6 +43,15 @@ namespace consumer.Controllers
             }
         }
 
+        /// <summary>
+        /// Returns the last exchange rate for a given currency pair.
+        /// GET: /api/pair_last
+        /// Body: { "from" : <from>, "to" : <to> }
+        /// Returns last ExchangePackage of the two currencies
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         [HttpGet("pair_last")]
         public async Task<IActionResult> GetLastFromPair([FromBody] PairRequest request, CancellationToken token = default)
         {

@@ -25,6 +25,11 @@ namespace consumer.Services
             cache = _cache;
             log = _log;
         }
+
+        // This service consumes messages from a Kafka topic and caches the latest ExchangePackage.
+        // It ensures the topic exists, subscribes to it, and processes incoming messages.
+        // JSON payloads are deserialized into ExchangePackage objects and stored in ILastPackageCache.
+        // Errors and edge cases (nulls, deserialization issues, topic readiness) are logged and handled gracefully.
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var mode = config["RunMode"] ?? "Kafka";
@@ -46,7 +51,7 @@ namespace consumer.Services
                 return;
             }
 
-            // 1) Ensure topic exists (dev-friendly; idempotent)
+            // Ensure topic exists (dev-friendly; idempotent)
             try
             {
                 using var admin = new AdminClientBuilder(new AdminClientConfig
