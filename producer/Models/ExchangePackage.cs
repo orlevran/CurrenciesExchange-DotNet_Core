@@ -3,6 +3,10 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace producer.Models
 {
+    // This file defines the ExchangePackage class, which represents a package of currency exchange rates.
+    // It is designed to be stored in MongoDB, with an ObjectId as its unique identifier.
+    // The class contains a timestamp (time) and a list of ExchangeRate objects (rates).
+    // The constructor initializes the timestamp to the current UTC time and creates an empty list of rates.
     public class ExchangePackage
     {
         [BsonId]

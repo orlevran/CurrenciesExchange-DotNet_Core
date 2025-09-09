@@ -18,6 +18,11 @@ namespace producer.Services
             exchangeClient = _exchangeClient;
             active = _active;
         }
+
+        /// <summary>
+        /// Fetch exchange rates for given currency pairs from external API and store in DB
+        /// </summary>
+        /// <param name="request"></param>
         public async Task<ExchangePackage> DocumentPackage(ExchangePackageRequest request, CancellationToken cancellationToken = default)
         {
             if (request == null || request?.currencies == null)
@@ -25,8 +30,10 @@ namespace producer.Services
                 throw new ArgumentNullException(nameof(request), "Request cannot be null.");
             }
 
+            // Use a thread-safe collection to store results from parallel tasks
             var bag = new System.Collections.Concurrent.ConcurrentBag<ExchangeRate>();
 
+            // Fetch rates in parallel for each currency pair
             await Parallel.ForEachAsync(request.currencies, cancellationToken, async (tuple, ct) =>
             {
                 var from = tuple.Item1;
@@ -45,6 +52,7 @@ namespace producer.Services
 
             var package = new ExchangePackage { rates = bag.ToList() };
 
+            // Insert the package into MongoDB
             await packagesCollection.InsertOneAsync(package);
             return package;
         }

@@ -15,6 +15,12 @@ namespace producer.Controllers
             service = _service;    
         }
 
+        /// <summary>
+        /// Fetch exchange rates for given currency pairs from external API and store in DB
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("fetch")]
         public async Task<IActionResult> FetchPackage([FromBody] ExchangePackageRequest request, CancellationToken token = default)
