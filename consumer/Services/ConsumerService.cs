@@ -8,10 +8,24 @@ namespace consumer.Services
     public class ConsumerService : IConsumerService
     {
         private readonly IMongoCollection<ExchangePackage> packagesCollection;
+
+        /// <summary>
+        /// Initializes a new instance of ConsumerService.
+        /// Sets up access to the "ExchangePackages" collection in MongoDB.
+        /// </summary>
+        /// <param name="database">The MongoDB database instance.</param>
         public ConsumerService(IMongoDatabase database)
         {
             packagesCollection = database.GetCollection<ExchangePackage>("ExchangePackages");
         }
+
+        /// <summary> 
+        /// Retrieves the most recent ExchangePackage/> 
+        /// from the last 24 hours, based on the "time" field.
+        /// </summary>
+        ///  cancellationToken: Optional cancellation token for async operation.
+        /// <returns>The most recent ExchangePackage in the last 24 hours.</returns>
+        /// InvalidOperationException: Thrown when no recent package is found in the "ExchangePackages" collection.
         public async Task<ExchangePackage> GetLastPackage(CancellationToken cancellationToken = default)
         {
             var mostRecentPackage = await packagesCollection
@@ -28,6 +42,15 @@ namespace consumer.Services
             throw new InvalidOperationException("GetLastPackage failed. Check 'ExchangePackages 'collection");
         }
 
+        /// <summary>
+        /// Retrieves the most recent <see cref="ExchangePackage"/> 
+        /// that contains an exchange rate for the specified currency pair.
+        /// </summary>
+        /// request: The currency pair request containing 'from' and 'to' values.
+        /// cancellationToken: Optional cancellation token for async operation.
+        /// Returns: The most recent ExchangePackage that includes the requested currency pair.
+        /// ArgumentNullException :Thrown if the request is null or has missing values.
+        /// InvalidOperationException :Thrown if no package is found for the specified currency pair.
         public async Task<ExchangePackage> GetLastPairRate(PairRequest request, CancellationToken cancellationToken = default)
         {
 
